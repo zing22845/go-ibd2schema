@@ -13,7 +13,8 @@ type SDI struct {
 	OriginDataLen       uint64
 	UncompressedData    []byte
 	UncompressedDataLen uint64
-	DDL                 string
+	DatabaseName        string
+	TableSchema         *TableSchema
 }
 
 func (sdi *SDI) DumpJson() (result []byte) {
@@ -23,7 +24,7 @@ func (sdi *SDI) DumpJson() (result []byte) {
 	return result
 }
 
-func (sdi *SDI) DumpDDL() (err error) {
+func (sdi *SDI) DumpTableSchema() (err error) {
 	object := gjson.ParseBytes(sdi.UncompressedData)
 	ddObjectType := object.Get(`dd_object_type`)
 	if ddObjectType.String() != `Table` {
@@ -35,7 +36,10 @@ func (sdi *SDI) DumpDDL() (err error) {
 	if !name.Exists() {
 		return fmt.Errorf(`table name not found`)
 	}
-	sdi.DDL = fmt.Sprintf("CREATE TABLE `%s` (\n", name.String())
+	sdi.TableSchema = &TableSchema{
+		Name: name.String(),
+	}
+	sdi.TableSchema.DDL = fmt.Sprintf("CREATE TABLE `%s` (\n", sdi.TableSchema.Name)
 	// parse table collation
 	tableCollationDDL, err := ParseCollation(ddObject)
 	if err != nil {
@@ -46,34 +50,35 @@ func (sdi *SDI) DumpDDL() (err error) {
 	if !tableSchema.Exists() {
 		return fmt.Errorf(`table schema not found`)
 	}
+	sdi.DatabaseName = tableSchema.String()
 	// table columns
 	columnDDL, columnCache, err := ParseColumns(ddObject)
 	if err != nil {
 		return err
 	}
-	sdi.DDL += columnDDL
+	sdi.TableSchema.DDL += columnDDL
 	// table indexes
 	indexDDL, err := ParseIndexes(ddObject, columnCache)
 	if err != nil {
 		return err
 	}
-	sdi.DDL += indexDDL
+	sdi.TableSchema.DDL += indexDDL
 	// foreign keys
 	fkDDL, err := ParseForeignKeys(ddObject, columnCache, tableSchema.String())
 	if err != nil {
 		return err
 	}
-	sdi.DDL += fkDDL
+	sdi.TableSchema.DDL += fkDDL
 	// enclose column and index
-	sdi.DDL = sdi.DDL[:len(sdi.DDL)-2]
-	sdi.DDL += "\n)"
+	sdi.TableSchema.DDL = sdi.TableSchema.DDL[:len(sdi.TableSchema.DDL)-2]
+	sdi.TableSchema.DDL += "\n)"
 	// engine
 	engineDDL, err := ParseEngine(ddObject)
 	if err != nil {
 		return err
 	}
-	sdi.DDL += engineDDL
+	sdi.TableSchema.DDL += engineDDL
 	// table collation
-	sdi.DDL += tableCollationDDL
+	sdi.TableSchema.DDL += tableCollationDDL
 	return nil
 }

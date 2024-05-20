@@ -26,6 +26,11 @@ type TablespaceFile struct {
 	File *os.File
 }
 
+type TableSchema struct {
+	Name string
+	DDL  string
+}
+
 type TableSpace struct {
 	Reader          io.Reader
 	Buf             *bytes.Buffer
@@ -44,7 +49,7 @@ type TableSpace struct {
 	SDIs            []*SDI
 	CurPage         *Page
 	SDIResult       []byte
-	DDLs            []string
+	TableSchemas    map[string]*TableSchema
 }
 
 func NewTableSpace(r io.Reader) (ts *TableSpace, err error) {
@@ -482,28 +487,26 @@ func (ts *TableSpace) DumpSDIs() (err error) {
 		result := sdi.DumpJson()
 		results[n+1] = result
 		ts.SDIResult = append(ts.SDIResult, result...)
-		err = sdi.DumpDDL()
-		if err != nil {
-			return err
-		}
 	}
 	ts.SDIResult = bytes.Join(results, []byte(","))
 	ts.SDIResult = append(ts.SDIResult, []byte("]")...)
 	return nil
 }
 
-func (ts *TableSpace) DumpDDLs() (err error) {
+func (ts *TableSpace) DumpSchemas() (err error) {
 	err = ts.DumpAllRecsInLeafLevel()
 	if err != nil {
 		return err
 	}
-	ts.DDLs = make([]string, 0)
+	ts.TableSchemas = make(map[string]*TableSchema)
 	for _, sdi := range ts.SDIs {
-		err = sdi.DumpDDL()
+		err = sdi.DumpTableSchema()
 		if err != nil {
 			return err
 		}
-		ts.DDLs = append(ts.DDLs, sdi.DDL)
+		if sdi.TableSchema != nil {
+			ts.TableSchemas[sdi.DatabaseName] = sdi.TableSchema
+		}
 	}
 	return nil
 }
