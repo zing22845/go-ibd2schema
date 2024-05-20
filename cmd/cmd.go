@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// dump ddl
+	// dump ddl: only support file per table = On
 	err = ts.DumpSchemas()
 	if err != nil {
 		fmt.Printf("%+v\n", err)

@@ -28,13 +28,16 @@ func main() {
  if err != nil {
   panic(err)
  }
- // dump ddl
- err = ts.DumpDDLs()
+ // dump ddl: only support file per table = On
+ err = ts.DumpSchemas()
  if err != nil {
   fmt.Printf("%+v\n", err)
   os.Exit(-1)
  }
- fmt.Println(ts.DDLs[0])
+ for db, table := range ts.TableSchemas {
+  fmt.Printf("Database: %s\n", db)
+  fmt.Printf("Table DDL: %s\n", table.DDL)
+ }
  // dump sdi
  err = ts.DumpSDIs()
  if err != nil {
