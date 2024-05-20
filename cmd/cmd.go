@@ -15,7 +15,7 @@ func main() {
 		panic(err)
 	}
 
-	ts, err := ibd2schema.NewTableSpace(file, os.Stdout)
+	ts, err := ibd2schema.NewTableSpace(file)
 	if err != nil {
 		panic(err)
 	}

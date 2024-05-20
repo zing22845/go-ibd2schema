@@ -28,7 +28,6 @@ type TablespaceFile struct {
 
 type TableSpace struct {
 	Reader          io.Reader
-	Writer          io.Writer
 	Buf             *bytes.Buffer
 	Flags           uint32
 	SpaceID         uint32
@@ -48,10 +47,9 @@ type TableSpace struct {
 	DDLs            []string
 }
 
-func NewTableSpace(r io.Reader, w io.Writer) (ts *TableSpace, err error) {
+func NewTableSpace(r io.Reader) (ts *TableSpace, err error) {
 	ts = &TableSpace{
 		Reader: r,
-		Writer: w,
 	}
 	ts.Buf = bytes.NewBuffer(nil)
 
