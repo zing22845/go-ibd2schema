@@ -196,6 +196,10 @@ func (c *Column) parseDefaultValueNull() {
 			c.DDL += fmt.Sprintf(" DEFAULT %s", defaultOption)
 		}
 	}
+	updateOption := c.GJson.Get("update_option")
+	if updateOption.Exists() && updateOption.String() != "" {
+		c.DDL += fmt.Sprintf(" ON UPDATE %s", updateOption.String())
+	}
 }
 
 func (c *Column) parseIsAutoIncrement() {

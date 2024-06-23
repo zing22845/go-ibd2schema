@@ -331,9 +331,11 @@ func ParseCollation(ddObject gjson.Result) (ddl string, err error) {
 	}
 	ddl += " DEFAULT CHARSET="
 	ddl += collation.CharsetName
-	if collation.IsDefault {
-		return ddl, nil
-	}
+	/*
+		if collation.IsDefault {
+			return ddl, nil
+		}
+	*/
 	ddl += " COLLATE="
 	ddl += collation.Name
 	return ddl, nil
