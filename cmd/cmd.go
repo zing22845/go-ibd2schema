@@ -19,6 +19,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// dump sdi
+	err = ts.DumpSDIs()
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+		os.Exit(-1)
+	}
+	fmt.Println(string(pretty.Pretty(ts.SDIResult)))
 	// dump ddl: only support file per table = On
 	err = ts.DumpSchemas()
 	if err != nil {
@@ -29,11 +36,4 @@ func main() {
 		fmt.Printf("Database: %s\n", db)
 		fmt.Printf("Table DDL: %s\n", table.DDL)
 	}
-	// dump sdi
-	err = ts.DumpSDIs()
-	if err != nil {
-		fmt.Printf("%+v\n", err)
-		os.Exit(-1)
-	}
-	fmt.Println(string(pretty.Pretty(ts.SDIResult)))
 }

@@ -115,7 +115,8 @@ func (c *Column) SupportPrefixIndex() bool {
 		c.Type == CT_LONG_BLOB ||
 		c.Type == CT_BLOB ||
 		c.Type == CT_VAR_STRING ||
-		c.Type == CT_STRING
+		c.Type == CT_STRING ||
+		c.Type == CT_GEOMETRY
 }
 
 /*

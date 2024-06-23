@@ -2,6 +2,7 @@ package ibd2schema
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/tidwall/gjson"
 )
@@ -11,6 +12,7 @@ var IndexMembers = []string{
 	`type`,
 	`hidden`,
 	`elements`,
+	`options`,
 }
 
 var IndexElementMembers = []string{
@@ -58,6 +60,10 @@ func (i *Index) parseType() (err error) {
 		i.DDL += fmt.Sprintf("  UNIQUE KEY `%s` (", i.Name)
 	case IT_MULTIPLE:
 		i.DDL += fmt.Sprintf("  KEY `%s` (", i.Name)
+	case IT_FULLTEXT:
+		i.DDL += fmt.Sprintf("  FULLTEXT KEY `%s` (", i.Name)
+	case IT_SPATIAL:
+		i.DDL += fmt.Sprintf("  SPATIAL KEY `%s` (", i.Name)
 	default:
 		return fmt.Errorf("unsuported index type %d", i.Type)
 	}
@@ -70,13 +76,15 @@ func (i *Index) parseElementDDL(element *IndexElement, columnCache ColumnCache) 
 		return fmt.Errorf("index column %d not found in the column map", element.ColumnOpx)
 	}
 	if i.Type == IT_MULTIPLE && column.Hidden == HT_HIDDEN_SQL {
-		i.DDL += fmt.Sprintf("(%s),", column.GenerationExpression)
+		i.DDL += fmt.Sprintf("(%s)", column.GenerationExpression)
+	} else if i.Type == IT_FULLTEXT || i.Type == IT_SPATIAL {
+		i.DDL += fmt.Sprintf("`%s`,", column.Name)
 	} else {
 		i.DDL += fmt.Sprintf("`%s`", column.Name)
 		/* check prefix index */
 		if column.SupportPrefixIndex() {
 			if element.Length != int64(column.Size) {
-				i.DDL += fmt.Sprintf("(%d)", element.Length)
+				i.DDL += fmt.Sprintf("(%d)", element.Length/int64(column.Collation.Maxlen))
 			}
 		}
 		i.DDL += ","
@@ -101,6 +109,30 @@ func (i *Index) parseElements(columnCache ColumnCache) (err error) {
 			return err
 		}
 	}
+	i.DDL = strings.TrimSuffix(i.DDL, ",")
+	i.DDL += ")"
+	return nil
+}
+
+func (i *Index) parseOptions() (err error) {
+	options := i.GJson.Get("options")
+	optionsList := strings.Split(options.String(), ";")
+	for _, option := range optionsList {
+		opt := strings.SplitN(option, "=", 2)
+		switch opt[0] {
+		case "":
+			continue
+		case "flags":
+			if opt[1] != "0" {
+				return fmt.Errorf("unsupported options flags %s", opt[1])
+			}
+		case "parser_name":
+			i.DDL += fmt.Sprintf(" /*!50100 WITH PARSER `%s` */ ", opt[1])
+		default:
+			return fmt.Errorf("unsupported option %s", opt[0])
+		}
+	}
+	i.DDL += ",\n"
 	return nil
 }
 
@@ -159,8 +191,11 @@ func ParseIndexes(ddObject gjson.Result, columnCache ColumnCache) (
 		if err != nil {
 			return "", err
 		}
-		index.DDL = index.DDL[:len(index.DDL)-1]
-		ddl += fmt.Sprintf("%s),\n", index.DDL)
+		err = index.parseOptions()
+		if err != nil {
+			return "", err
+		}
+		ddl += index.DDL
 	}
 	return ddl, nil
 }
