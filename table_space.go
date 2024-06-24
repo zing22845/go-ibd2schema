@@ -235,7 +235,6 @@ func (ts *TableSpace) GetNextRecOffset(recOffset uint16) (nextRecOffset uint16, 
 		if nextPageNum == FIL_NULL {
 			return 0, nil
 		}
-		fmt.Printf("nextPageNum:%d\n", nextPageNum)
 		var ok bool
 		ts.CurPage, ok = ts.SDIPagesMap[nextPageNum]
 		if !ok {
@@ -273,7 +272,6 @@ func (ts *TableSpace) GetFirstUserRec() (curRecOffset uint16, err error) {
 		return curRecOffset, nil
 	}
 	/* record is delete marked, get next record */
-	fmt.Printf("debug 1\n")
 	curRecOffset, err = ts.GetNextRecOffset(curRecOffset)
 	if err != nil {
 		return 0, err

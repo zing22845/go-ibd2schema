@@ -31,6 +31,12 @@ func (sdi *SDI) DumpTableSchema() (err error) {
 		return nil
 	}
 	ddObject := object.Get(`dd_object`)
+	// table schema
+	tableSchema := ddObject.Get(`schema_ref`)
+	if !tableSchema.Exists() {
+		return fmt.Errorf(`table schema not found`)
+	}
+	sdi.DatabaseName = tableSchema.String()
 	// table name
 	name := ddObject.Get(`name`)
 	if !name.Exists() {
@@ -50,12 +56,6 @@ func (sdi *SDI) DumpTableSchema() (err error) {
 	if err != nil {
 		return err
 	}
-	// table schema
-	tableSchema := ddObject.Get(`schema_ref`)
-	if !tableSchema.Exists() {
-		return fmt.Errorf(`table schema not found`)
-	}
-	sdi.DatabaseName = tableSchema.String()
 	// table columns
 	columnDDL, columnCache, err := ParseColumns(ddObject)
 	if err != nil {
