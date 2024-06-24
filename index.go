@@ -148,6 +148,9 @@ func (i *Index) parseOptions() (err error) {
 			continue
 		case "flags":
 			if opt[1] != "0" {
+				if opt[1] == "32" && i.Name == "FTS_INDEX_TABLE_IND" {
+					return fmt.Errorf("fulltext table space")
+				}
 				return fmt.Errorf("unsupported options flags %s", opt[1])
 			}
 		case "parser_name":

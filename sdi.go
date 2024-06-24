@@ -31,6 +31,10 @@ func (sdi *SDI) DumpTableSchema() (err error) {
 		return nil
 	}
 	ddObject := object.Get(`dd_object`)
+	// hidden
+	if ddObject.Get(`hidden`).Int() != 1 {
+		return nil
+	}
 	// table name
 	name := ddObject.Get(`name`)
 	if !name.Exists() {
