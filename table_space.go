@@ -27,8 +27,9 @@ type TablespaceFile struct {
 }
 
 type TableSchema struct {
-	Name string
-	DDL  string
+	Hidden HiddenType
+	Name   string
+	DDL    string
 }
 
 type TableSpace struct {

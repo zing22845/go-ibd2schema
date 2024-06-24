@@ -31,17 +31,18 @@ func (sdi *SDI) DumpTableSchema() (err error) {
 		return nil
 	}
 	ddObject := object.Get(`dd_object`)
-	// hidden
-	if ddObject.Get(`hidden`).Int() != 1 {
-		return nil
-	}
 	// table name
 	name := ddObject.Get(`name`)
 	if !name.Exists() {
 		return fmt.Errorf(`table name not found`)
 	}
+	// hidden
 	sdi.TableSchema = &TableSchema{
-		Name: name.String(),
+		Name:   name.String(),
+		Hidden: HiddenType(ddObject.Get(`hidden`).Int()),
+	}
+	if sdi.TableSchema.Hidden != HT_VISIBLE {
+		return nil
 	}
 	sdi.TableSchema.DDL = fmt.Sprintf("CREATE TABLE `%s` (\n", sdi.TableSchema.Name)
 	// parse table collation
