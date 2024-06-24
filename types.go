@@ -66,11 +66,16 @@ const (
 
 func (it IndexType) String() string {
 	switch it {
-	case IT_PRIMARY: return "primary"
-	case IT_UNIQUE: return "unique"
-	case IT_MULTIPLE: return "multiple"
-	case IT_FULLTEXT: return "fulltext"
-	case IT_SPATIAL: return "spatial"
+	case IT_PRIMARY:
+		return "primary"
+	case IT_UNIQUE:
+		return "unique"
+	case IT_MULTIPLE:
+		return "multiple"
+	case IT_FULLTEXT:
+		return "fulltext"
+	case IT_SPATIAL:
+		return "spatial"
 	}
 	return "unknown index type"
 }
@@ -84,8 +89,25 @@ const (
 	IA_FULLTEXT
 )
 
+func (ia IndexAlgorithm) String() string {
+	switch ia {
+	case IA_SE_SPECIFIC:
+		return "se_specific"
+	case IA_BTREE:
+		return "btree"
+	case IA_RTREE:
+		return "rtree"
+	case IA_HASH:
+		return "hash"
+	case IA_FULLTEXT:
+		return "fulltext"
+	}
+	return "unknown index algorithm"
+}
+
 /* https://github.com/mysql/mysql-server/blob/trunk/sql/dd/types/foreign_key.h */
 type FKRule int64
+
 const (
 	FK_RULE_NO_ACTION FKRule = iota + 1
 	FK_RULE_RESTRICT
@@ -94,9 +116,10 @@ const (
 	FK_RULE_SET_DEFAULT
 )
 
-type FKMatchOption int64 
+type FKMatchOption int64
+
 const (
-    FK_OPTION_NONE FKMatchOption = iota + 1
-    FK_OPTION_PARTIAL
-    FK_OPTION_FULL
+	FK_OPTION_NONE FKMatchOption = iota + 1
+	FK_OPTION_PARTIAL
+	FK_OPTION_FULL
 )

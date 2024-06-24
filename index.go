@@ -13,6 +13,9 @@ var IndexMembers = []string{
 	`hidden`,
 	`elements`,
 	`options`,
+	`algorithm`,
+	`is_algorithm_explicit`,
+	`comment`,
 }
 
 var IndexElementMembers = []string{
@@ -36,19 +39,25 @@ func NewIndexElement(e gjson.Result) *IndexElement {
 }
 
 type Index struct {
-	Name   string
-	Type   IndexType
-	Hidden bool
-	GJson  gjson.Result
-	DDL    string
+	Name                string
+	Type                IndexType
+	Hidden              bool
+	GJson               gjson.Result
+	DDL                 string
+	Algorithm           IndexAlgorithm
+	IsAlgorithmExplicit bool
+	Comment             string
 }
 
 func NewIndex(i gjson.Result) *Index {
 	return &Index{
-		Name:   i.Get("name").String(),
-		Type:   IndexType(i.Get("type").Int()),
-		Hidden: i.Get("hidden").Bool(),
-		GJson:  i,
+		Name:                i.Get("name").String(),
+		Type:                IndexType(i.Get("type").Int()),
+		Hidden:              i.Get("hidden").Bool(),
+		GJson:               i,
+		Algorithm:           IndexAlgorithm(i.Get("algorithm").Int()),
+		IsAlgorithmExplicit: i.Get("is_algorithm_explicit").Bool(),
+		Comment:             i.Get("comment").String(),
 	}
 }
 
@@ -114,6 +123,21 @@ func (i *Index) parseElements(columnCache ColumnCache) (err error) {
 	return nil
 }
 
+func (i *Index) parseAlgorithm() (err error) {
+	if !i.IsAlgorithmExplicit {
+		return nil
+	}
+	switch i.Algorithm {
+	case IA_BTREE:
+		i.DDL += " USING BTREE"
+	case IA_HASH:
+		i.DDL += " USING HASH"
+	default:
+		return fmt.Errorf("unsupported index algorithm %s", i.Algorithm.String())
+	}
+	return nil
+}
+
 func (i *Index) parseOptions() (err error) {
 	options := i.GJson.Get("options")
 	optionsList := strings.Split(options.String(), ";")
@@ -133,6 +157,13 @@ func (i *Index) parseOptions() (err error) {
 		}
 	}
 	i.DDL += ",\n"
+	return nil
+}
+
+func (i *Index) parseComment() (err error) {
+	if i.Comment != "" {
+		i.DDL += fmt.Sprintf(" COMMENT '%s'", i.Comment)
+	}
 	return nil
 }
 
@@ -191,7 +222,15 @@ func ParseIndexes(ddObject gjson.Result, columnCache ColumnCache) (
 		if err != nil {
 			return "", err
 		}
+		err = index.parseAlgorithm()
+		if err != nil {
+			return "", err
+		}
 		err = index.parseOptions()
+		if err != nil {
+			return "", err
+		}
+		err = index.parseComment()
 		if err != nil {
 			return "", err
 		}

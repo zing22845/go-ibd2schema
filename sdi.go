@@ -80,5 +80,13 @@ func (sdi *SDI) DumpTableSchema() (err error) {
 	sdi.TableSchema.DDL += engineDDL
 	// table collation
 	sdi.TableSchema.DDL += tableCollationDDL
+	// table comment
+	tableComment := ddObject.Get(`comment`)
+	if !tableComment.Exists() {
+		return fmt.Errorf(`table comment not found`)
+	}
+	if tableComment.String() != "" {
+		sdi.TableSchema.DDL += fmt.Sprintf(" COMMENT = '%s'", tableComment.String())
+	}
 	return nil
 }

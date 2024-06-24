@@ -176,6 +176,8 @@ func (c *Column) parseGenerationExpression() {
 func (c *Column) parseIsNullable() {
 	if !c.GJson.Get("is_nullable").Bool() {
 		c.DDL += " NOT NULL"
+	} else if c.Type == CT_TIMESTAMP2 || c.Type == CT_TIMESTAMP {
+		c.DDL += " NULL"
 	}
 }
 
@@ -214,6 +216,13 @@ func (c *Column) parseIsGipk() {
 	}
 }
 
+func (c *Column) parseComment() {
+	comment := c.GJson.Get("comment").String()
+	if comment != "" {
+		c.DDL += fmt.Sprintf(" COMMENT '%s'", comment)
+	}
+}
+
 func (c *Column) parseDDL() {
 	// parse ddl from attribues
 	c.parseName()
@@ -224,6 +233,7 @@ func (c *Column) parseDDL() {
 	c.parseDefaultValueNull()
 	c.parseIsAutoIncrement()
 	c.parseIsGipk()
+	c.parseComment()
 }
 
 type ColumnCache map[int]*Column
