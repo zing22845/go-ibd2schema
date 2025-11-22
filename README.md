@@ -46,7 +46,7 @@ This approach significantly improves efficiency when dealing with large-scale da
 
 ## Usage
 
-Just give the parser filepath and file reader of the .ibd file.
+Just give the parser filepath and file reader of the .ibd file of MySQL 8.0 InnoDB tablespace.
 
 ```go
 func main() {
