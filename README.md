@@ -44,6 +44,10 @@ This approach significantly improves efficiency when dealing with large-scale da
 | update_option support     | ✅            | ✅ (ibd2sdi) / ❌ (sdi2ddl)  |
 | Performance (file parsing)| 1.2~1.4x      | 1x                          |
 
+## Used By
+
+This project is used in [go-xbstream](https://github.com/zing22845/go-xbstream/blob/master/pkg/index/table_schema.go) for streaming parsing of table structure information in MySQL xtrabackup backup data streams.
+
 ## Usage
 
 Just give the parser filepath and file reader of the .ibd file of MySQL 8.0 InnoDB tablespace.
