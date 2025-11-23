@@ -23,3 +23,4 @@ cmd/.DS_Store
 cmd/cmd
 test_ibds/a.sql
 test_ibds/b.sql
+.DS_Store
